@@ -1,9 +1,9 @@
 === Format Media Titles ===
 Contributors: dgwyer
-Tags: media, library, format, title, automatic, upload, replace, remove, characters
+Tags: media, library, format, title, automatic, upload, replace, remove, characters, capitalize, filter
 Requires at least: 2.7
-Tested up to: 3.2.1
-Stable tag: 0.1
+Tested up to: 4.0
+Stable tag: 0.2
 
 Automatically formats the title for new media uploads. No need to manually edit the title anymore every time you upload an image!
 
@@ -27,7 +27,7 @@ Future versions of this Plugin will include:
 
 Please rate 'Format Media Titles' if you find it useful, thanks.
 
-See our <a href="http://www.presscoders.com" target="_blank">WordPress development site</a> for more information, or our <a href="http://wordpress.org/extend/plugins/profile/dgwyer" target="_blank">other WordPress Plugins</a>.
+See our <a href="http://www.wpgothemes.com" target="_blank">WordPress development site</a> for more information, or our <a href="http://wordpress.org/extend/plugins/profile/dgwyer" target="_blank">other WordPress Plugins</a>.
 
 == Installation ==
 
@@ -47,5 +47,11 @@ The Plugin can be installed directly from the main WordPress Plugin page.
 2. Same media upload with 'Format Media Titles' Plugin activated. No need to manually edit title anymore!
 
 == Changelog ==
+
+*0.2*
+
+* Updated plugin settings page.
+* Removed redundant code.
+* Tested with WordPress 4.0.
 
 *0.1 Initial Release*
