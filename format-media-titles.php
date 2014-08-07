@@ -3,7 +3,7 @@
 Plugin Name: Format Media Titles
 Plugin URI: http://www.wpgothemes.com/plugins/format-media-titles/
 Description: Automatically formats the title for new media uploads. No need to manually edit the title anymore every time you upload an image!
-Version: 0.2
+Version: 0.21
 Author: David Gwyer
 Author URI: http://www.wpgothemes.com
 */
@@ -38,6 +38,7 @@ Author URI: http://www.wpgothemes.com
 register_activation_hook( __FILE__, 'fmt_add_defaults' );
 register_uninstall_hook( __FILE__, 'fmt_delete_plugin_options' );
 add_action( 'admin_menu', 'fmt_add_options_page' );
+add_action('admin_init', 'fmt_init' );
 
 /* Delete options table entries ONLY when plugin deactivated AND deleted. */
 function fmt_delete_plugin_options() {
@@ -56,6 +57,11 @@ function fmt_add_defaults() {
 		);
 		update_option( 'fmt_options', $arr );
 	}
+}
+
+/* Init plugin options to white list our options. */
+function fmt_init(){
+    register_setting( 'fmt_plugin_options', 'fmt_options' );
 }
 
 /* Add menu page. */
@@ -130,7 +136,7 @@ function fmt_render_form() {
 						<label><input name="fmt_options[chk_default_options_db]" type="checkbox" value="1" <?php if ( isset( $options['chk_default_options_db'] ) ) {
 								checked( '1', $options['chk_default_options_db'] );
 							} ?> /> Restore defaults upon plugin deactivation/reactivation</label>
-						<br /><span style="color:#666666;margin-left:2px;">Only check this if you want to reset plugin settings upon Plugin reactivation</span>
+						<p class="description">Only check this if you want to reset plugin settings upon Plugin reactivation</p>
 					</td>
 				</tr>
 			</table>
