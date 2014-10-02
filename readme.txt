@@ -3,9 +3,9 @@ Contributors: dgwyer
 Tags: media, library, format, title, automatic, upload, replace, remove, characters, capitalize, filter
 Requires at least: 2.7
 Tested up to: 4.0
-Stable tag: 0.21
+Stable tag: 0.25
 
-Automatically formats the title for new media uploads. No need to manually edit the title anymore every time you upload an image!
+Automatically formats the title (and optionally the ALT field) for new media uploads. No need to manually edit the title anymore every time you upload an image!
 
 == Description ==
 
@@ -47,6 +47,12 @@ The Plugin can be installed directly from the main WordPress Plugin page.
 2. Same media upload with 'Format Media Titles' Plugin activated. No need to manually edit title anymore!
 
 == Changelog ==
+
+*0.25*
+
+* Added option to automatically add formatted title to the image ALT field.
+* Now fully translatable!
+* Minor tweaks to the plugin options page.
 
 *0.21*
 

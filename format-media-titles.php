@@ -3,7 +3,7 @@
 Plugin Name: Format Media Titles
 Plugin URI: http://www.wpgothemes.com/plugins/format-media-titles/
 Description: Automatically formats the title for new media uploads. No need to manually edit the title anymore every time you upload an image!
-Version: 0.21
+Version: 0.25
 Author: David Gwyer
 Author URI: http://www.wpgothemes.com
 */
@@ -29,16 +29,22 @@ Author URI: http://www.wpgothemes.com
 
 // @todo
 //
-// 1. Optionally add the (formatted title) to the alt field too.
-// 2. Be able to add a prefix or suffix to the title or filename etc.
-// 3. See the Plugin support posts for more ideas.
-// 4. Enable renaming of multiple images, all at once?
+// 1. Be able to add a prefix or suffix to the title or filename etc.
+// 2. See the Plugin support posts for more ideas.
+// 3. Enable batch renaming of multiple images, all at once?
 
 /* Set-up Hooks. */
 register_activation_hook( __FILE__, 'fmt_add_defaults' );
 register_uninstall_hook( __FILE__, 'fmt_delete_plugin_options' );
 add_action( 'admin_menu', 'fmt_add_options_page' );
 add_action('admin_init', 'fmt_init' );
+add_action( 'add_attachment', 'fmt_update_media_title' );
+add_filter( 'plugin_action_links', 'fmt_plugin_action_links', 10, 2 );
+add_action( 'plugins_loaded', 'fmt_localize_plugin' );
+
+function fmt_localize_plugin() {
+	load_plugin_textdomain( 'format-media-titles', false, basename( dirname( __FILE__ ) ) . '/languages/' );
+}
 
 /* Delete options table entries ONLY when plugin deactivated AND deleted. */
 function fmt_delete_plugin_options() {
@@ -52,7 +58,6 @@ function fmt_add_defaults() {
 		delete_option( 'fmt_options' );
 		$arr = array( "chk_hyphen"             => "1",
 					  "chk_underscore"         => "1",
-					  "chk_default_options_db" => "",
 					  "rdo_cap_options"        => "cap_all"
 		);
 		update_option( 'fmt_options', $arr );
@@ -73,11 +78,9 @@ function fmt_add_options_page() {
 function fmt_render_form() {
 	?>
 	<div class="wrap">
-		<h2>Format Media Titles</h2>
+		<h2><?php _e( 'Format Media Titles', 'format-media-titles' ); ?></h2>
 
-		<p>Select the characters you want to be removed from the media title (and replaced with spaces) for newly uploaded media. Then, choose how you want the title to be capitalized.</p>
-
-		<p class="description">Note: Capitalization works on individual words separated by spaces. If the title contains NO spaces after character removal then only the first letter will be capitalized (as the title is effectively ONE word).</p>
+		<p><?php _e( 'Select the characters you want to be removed from the media title (and replaced with spaces) for newly uploaded media. Then, choose how you want the title to be capitalized.', 'format-media-titles' ); ?></p>
 
 		<form method="post" action="options.php">
 			<?php settings_fields( 'fmt_plugin_options' ); ?>
@@ -86,89 +89,97 @@ function fmt_render_form() {
 			<table class="form-table">
 
 				<tr valign="top">
-					<th scope="row">Remove Characters</th>
+					<th scope="row"><?php _e( 'Remove Characters', 'format-media-titles' ); ?></th>
 					<td>
 						<label><input name="fmt_options[chk_hyphen]" type="checkbox" value="1" <?php if ( isset( $options['chk_hyphen'] ) ) {
 								checked( '1', $options['chk_hyphen'] );
-							} ?> /> Hyphen (-)</label><br />
+							} ?> /> <?php _e( 'Hyphen', 'format-media-titles' ); ?> (-)</label><br />
 
 						<label><input name="fmt_options[chk_underscore]" type="checkbox" value="1" <?php if ( isset( $options['chk_underscore'] ) ) {
 								checked( '1', $options['chk_underscore'] );
-							} ?> /> Underscore (_)</label><br />
+							} ?> /> <?php _e( 'Underscore', 'format-media-titles' ); ?> (_)</label><br />
 
 						<label><input name="fmt_options[chk_period]" type="checkbox" value="1" <?php if ( isset( $options['chk_period'] ) ) {
 								checked( '1', $options['chk_period'] );
-							} ?> /> Period (.)</label><br />
+							} ?> /> <?php _e( 'Period', 'format-media-titles' ); ?> (.)</label><br />
 
 						<label><input name="fmt_options[chk_tilde]" type="checkbox" value="1" <?php if ( isset( $options['chk_tilde'] ) ) {
 								checked( '1', $options['chk_tilde'] );
-							} ?> /> Tilde (~)</label><br />
+							} ?> /> <?php _e( 'Tilde', 'format-media-titles' ); ?> (~)</label><br />
 
 						<label><input name="fmt_options[chk_plus]" type="checkbox" value="1" <?php if ( isset( $options['chk_plus'] ) ) {
 								checked( '1', $options['chk_plus'] );
-							} ?> /> Plus (+)</label>
+							} ?> /> <?php _e( 'Plus', 'format-media-titles' ); ?> (+)</label>
 					</td>
 				</tr>
 
 				<tr valign="top">
-					<th scope="row">Capitalization Method</th>
+					<th scope="row"><?php _e( 'Capitalization Method', 'format-media-titles' ); ?></th>
 					<td>
-						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="cap_all" <?php checked( 'cap_all', $options['rdo_cap_options'] ); ?> /> Capitalize All Words</label><br />
+						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="cap_all" <?php checked( 'cap_all', $options['rdo_cap_options'] ); ?> /> <?php _e( 'Capitalize All Words', 'format-media-titles' ); ?></label><br />
 
-						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="cap_first" <?php checked( 'cap_first', $options['rdo_cap_options'] ); ?> /> Capitalize First Word Only</label><br />
+						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="cap_first" <?php checked( 'cap_first', $options['rdo_cap_options'] ); ?> /> <?php _e( 'Capitalize First Word Only', 'format-media-titles' ); ?></label><br />
 
-						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="all_lower" <?php checked( 'all_lower', $options['rdo_cap_options'] ); ?> /> All Words Lower Case</label><br />
+						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="all_lower" <?php checked( 'all_lower', $options['rdo_cap_options'] ); ?> /> <?php _e( 'All Words Lower Case', 'format-media-titles' ); ?></label><br />
 
-						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="all_upper" <?php checked( 'all_upper', $options['rdo_cap_options'] ); ?> /> All Words Upper Case</label><br />
+						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="all_upper" <?php checked( 'all_upper', $options['rdo_cap_options'] ); ?> /> <?php _e( 'All Words Upper Case', 'format-media-titles' ); ?></label><br />
 
-						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="dont_alter" <?php checked( 'dont_alter', $options['rdo_cap_options'] ); ?> /> Don't Alter (title text isn't modified in any way).</label>
+						<label><input name="fmt_options[rdo_cap_options]" type="radio" value="dont_alter" <?php checked( 'dont_alter', $options['rdo_cap_options'] ); ?> /> <?php _e( 'Don\'t Alter (title text isn\'t modified in any way)', 'format-media-titles' ); ?></label>
+
+						<p class="description"><?php _e( 'Capitalization works on individual words separated by spaces. If the title contains NO spaces after formatting then only the first letter will be capitalized.', 'format-media-titles' ); ?></p>
+					</td>
+				</tr>
+
+				<tr valign="top">
+					<th scope="row"><?php _e( 'Misc. Options', 'format-media-titles' ); ?></th>
+					<td>
+						<label><input name="fmt_options[chk_alt]" type="checkbox" value="1" <?php if ( isset( $options['chk_alt'] ) ) {
+								checked( '1', $options['chk_alt'] );
+							} ?> /> <?php _e( 'Add Title to Alternative Text Field?', 'format-media-titles' ); ?></label>
+						<p class="description"><?php _e( 'When checked this option copies the formatted media title to the \'Alternative Text\' field.', 'format-media-titles' ); ?></p>
 					</td>
 				</tr>
 
 				<tr>
 					<td colspan="2">
-						<div style="margin-top:10px;"></div>
+						<div></div>
 					</td>
 				</tr>
 				<tr valign="top" style="border-top:#dddddd 1px solid;">
-					<th scope="row">Database Options</th>
+					<th scope="row"><?php _e( 'Database Options', 'format-media-titles' ); ?></th>
 					<td>
 						<label><input name="fmt_options[chk_default_options_db]" type="checkbox" value="1" <?php if ( isset( $options['chk_default_options_db'] ) ) {
 								checked( '1', $options['chk_default_options_db'] );
-							} ?> /> Restore defaults upon plugin deactivation/reactivation</label>
-						<p class="description">Only check this if you want to reset plugin settings upon Plugin reactivation</p>
+							} ?> /> <?php _e( 'Restore defaults upon plugin deactivation/reactivation', 'format-media-titles' ); ?></label>
+						<p class="description"><?php _e( 'Only check this if you want to reset plugin settings upon Plugin reactivation', 'format-media-titles' ); ?></p>
 					</td>
 				</tr>
 			</table>
 			<p class="submit">
-				<input type="submit" class="button-primary" value="<?php _e( 'Save Changes' ) ?>" />
+				<input type="submit" class="button-primary" value="<?php _e( 'Save Changes', 'format-media-titles' ); ?>" />
 			</p>
 		</form>
 
-		<?php
-
-		$discount_date = "14th August 2014";
-		if( strtotime($discount_date) > strtotime('now') ) {
-			echo '<p style="background: #eee;border: 1px dashed #ccc;font-size: 13px;margin: 0 0 10px 0;padding: 5px 0 5px 8px;">For a limited time only! <strong>Get 50% OFF</strong> the price of our brand new mobile ready, fully responsive <a href="http://www.wpgothemes.com/themes/minn/" target="_blank"><strong>Minn WordPress theme</strong></a>. Simply enter the following code at checkout: <code>MINN50OFF</code></p>';
-		} else {
-			echo '<p style="background: #eee;border: 1px dashed #ccc;font-size: 13px;margin: 0 0 10px 0;padding: 5px 0 5px 8px;">As a user of our free plugins here\'s a bonus just for you! <strong>Get 30% OFF</strong> the price of our brand new mobile ready, fully responsive <a href="http://www.wpgothemes.com/themes/minn/" target="_blank"><strong>Minn WordPress theme</strong></a>. Simply enter the following code at checkout: <code>WPGO30OFF</code></p>';
-		}
-
-		?>
-
 		<div style="clear:both;">
 			<p>
-				<a href="http://www.twitter.com/dgwyer" title="Follow me Twitter!" target="_blank"><img src="<?php echo plugins_url(); ?>/format-media-titles/images/twitter.png" /></a>&nbsp;&nbsp;
-				<input class="button" style="vertical-align:12px;" type="button" value="Visit Our NEW Site!" onClick="window.open('http://www.wpgothemes.com')">
-				<input class="button" style="vertical-align:12px;" type="button" value="Minn, Our Latest Theme" onClick="window.open('http://www.wpgothemes.com/themes/minn')">
+				<a href="http://www.twitter.com/dgwyer" title="<?php _e( 'Come and join me on Twitter!', 'format-media-titles' ); ?> :-)" target="_blank"><img src="<?php echo plugins_url(); ?>/format-media-titles/images/twitter.png" /></a>&nbsp;&nbsp;
+				<input class="button" style="vertical-align:12px;" type="button" value="<?php _e( 'Visit Our NEW Site!', 'format-media-titles' ); ?>" onClick="window.open('http://www.wpgothemes.com')">
+				<input class="button" style="vertical-align:12px;" type="button" value="<?php _e( 'Minn, Our Latest Theme', 'format-media-titles' ); ?>" onClick="window.open('http://www.wpgothemes.com/themes/minn')">
 			</p>
 		</div>
 
+		<?php
+		$discount_date = "14th August 2014";
+		if( strtotime($discount_date) > strtotime('now') ) {
+			echo '<p style="background: #fff;border: 1px dashed #ccc;font-size: 13px;margin: 0 0 10px 0;padding: 5px 0 5px 8px;">For a limited time only! <strong>Get 50% OFF</strong> the price of our brand new mobile ready, fully responsive <a href="http://www.wpgothemes.com/themes/minn/" target="_blank"><strong>Minn WordPress theme</strong></a>. Simply enter the following code at checkout: <code>MINN50OFF</code></p>';
+		} else {
+			echo '<p style="background: #fff;border: 1px dashed #ccc;font-size: 13px;margin: 0 0 10px 0;padding: 5px 0 5px 8px;">As a user of our free plugins here\'s a bonus just for you! <a href="http://www.wpgothemes.com/themes/minn/" target="_blank"><strong>Get 30% OFF</strong></a> the price of our brand new mobile ready, fully responsive <a href="http://www.wpgothemes.com/themes/minn/" target="_blank"><strong>Minn WordPress theme</strong></a>. Simply enter the following code at checkout: <code>WPGO30OFF</code></p>';
+		}
+		?>
 	</div>
 <?php
 }
 
-add_filter( 'plugin_action_links', 'fmt_plugin_action_links', 10, 2 );
 /* Display a Settings link on the main Plugins page. */
 function fmt_plugin_action_links( $links, $file ) {
 
@@ -234,11 +245,14 @@ function fmt_update_media_title( $id ) {
 			break;
 	}
 
+	// add formatted title to the alt meta field too
+	if ( isset( $options['chk_alt'] ) && $options['chk_alt'] ) {
+		update_post_meta( $id, '_wp_attachment_image_alt', $title );
+	}
+
 	// Update the post into the database
 	$uploaded_post               = array();
 	$uploaded_post['ID']         = $id;
 	$uploaded_post['post_title'] = $title;
 	wp_update_post( $uploaded_post );
 }
-
-add_action( 'add_attachment', 'fmt_update_media_title' );
