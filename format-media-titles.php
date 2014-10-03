@@ -3,7 +3,7 @@
 Plugin Name: Format Media Titles
 Plugin URI: http://www.wpgothemes.com/plugins/format-media-titles/
 Description: Automatically formats the title for new media uploads. No need to manually edit the title anymore every time you upload an image!
-Version: 0.25
+Version: 0.26
 Author: David Gwyer
 Author URI: http://www.wpgothemes.com
 */
@@ -32,6 +32,7 @@ Author URI: http://www.wpgothemes.com
 // 1. Be able to add a prefix or suffix to the title or filename etc.
 // 2. See the Plugin support posts for more ideas.
 // 3. Enable batch renaming of multiple images, all at once?
+// 4. Maybe add options to specify a different replacement character, such as a hyphen?
 
 /* Set-up Hooks. */
 register_activation_hook( __FILE__, 'fmt_add_defaults' );
@@ -135,8 +136,15 @@ function fmt_render_form() {
 					<td>
 						<label><input name="fmt_options[chk_alt]" type="checkbox" value="1" <?php if ( isset( $options['chk_alt'] ) ) {
 								checked( '1', $options['chk_alt'] );
-							} ?> /> <?php _e( 'Add Title to Alternative Text Field?', 'format-media-titles' ); ?></label>
-						<p class="description"><?php _e( 'When checked this option copies the formatted media title to the \'Alternative Text\' field.', 'format-media-titles' ); ?></p>
+							} ?> /> <?php _e( 'Add Title to \'Alternative Text\' Field?', 'format-media-titles' ); ?></label><br>
+
+						<label><input name="fmt_options[chk_caption]" type="checkbox" value="1" <?php if ( isset( $options['chk_caption'] ) ) {
+								checked( '1', $options['chk_caption'] );
+							} ?> /> <?php _e( 'Add Title to \'Caption\' Field?', 'format-media-titles' ); ?></label><br>
+
+						<label><input name="fmt_options[chk_description]" type="checkbox" value="1" <?php if ( isset( $options['chk_description'] ) ) {
+								checked( '1', $options['chk_description'] );
+							} ?> /> <?php _e( 'Add Title to \'Description\' Field?', 'format-media-titles' ); ?></label><br>
 					</td>
 				</tr>
 
@@ -245,14 +253,25 @@ function fmt_update_media_title( $id ) {
 			break;
 	}
 
-	// add formatted title to the alt meta field too
+	// add formatted title to the alt meta field
 	if ( isset( $options['chk_alt'] ) && $options['chk_alt'] ) {
 		update_post_meta( $id, '_wp_attachment_image_alt', $title );
 	}
 
-	// Update the post into the database
+	// update the post
 	$uploaded_post               = array();
 	$uploaded_post['ID']         = $id;
 	$uploaded_post['post_title'] = $title;
+
+	// add formatted title to the description meta field
+	if ( isset( $options['chk_description'] ) && $options['chk_description'] ) {
+		$uploaded_post['post_content'] = $title;
+	}
+
+	// add formatted title to the caption meta field
+	if ( isset( $options['chk_caption'] ) && $options['chk_caption'] ) {
+		$uploaded_post['post_excerpt'] = $title;
+	}
+
 	wp_update_post( $uploaded_post );
 }
